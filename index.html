@@ -36,6 +36,7 @@
           <label for="auth-password">Senha</label>
           <input id="auth-password" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" required>
           <button class="primary-btn auth-submit" type="submit" id="auth-submit">Criar meu espaço <span>→</span></button>
+          <button class="ghost-btn auth-submit" type="button" id="auth-guest">Continuar sem conta</button>
           <p id="auth-error" class="form-error" aria-live="polite"></p>
         </form>
         <div class="security-note"><span class="shield">✦</span><span>Senha protegida com derivação PBKDF2 e dados locais criptografados. A conta fica neste navegador.</span></div>
@@ -181,6 +182,6 @@
 
   <div id="modal-overlay" class="modal-overlay hidden"><div class="modal-card"><button class="modal-close" id="modal-close">×</button><div id="modal-content"></div></div></div>
   <script src="app.js"></script>
-  <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {})); }</script>
+  <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').then(registration => registration.update()).catch(() => {})); }</script>
 </body>
 </html>
