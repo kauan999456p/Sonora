@@ -484,31 +484,41 @@ async function handleAuth(e){
 async function logout(){if(audio&&!audio.paused)audio.pause();state.key=null;state.user=null;state.localTracks=[];state.history=[];state.favorites=[];state.playlists=[];state.reelsDrafts=[];state.reelsInitialized=false;$('#app-shell').classList.add('hidden');$('#auth-screen').classList.remove('hidden');$('#auth-password').value='';await initAuth();}
 
 function enterGuestMode(){
-  state.key=null;
-  state.user={name:'Visitante'};
-  state.localTracks=[];
-  state.onlineTracks=[];
-  state.savedOnline=[];
-  state.playlists=[];
-  state.favorites=[];
-  state.history=[];
-  state.current=null;
-  state.queue=[];
-  state.queueIndex=-1;
-  state.reelsDrafts=[];
-  state.reelsInitialized=false;
-  $('#auth-error').textContent='';
-  $('#auth-screen').classList.add('hidden');
-  $('#app-shell').classList.remove('hidden');
-  renderAll();
-  switchView('discover');
-  showToast('Você entrou como visitante. Seus dados desta sessão não ficam salvos após fechar a página.');
+  try{
+    state.key=null;
+    state.user={name:'Visitante'};
+    state.localTracks=[];
+    state.onlineTracks=[];
+    state.savedOnline=[];
+    state.playlists=[];
+    state.favorites=[];
+    state.history=[];
+    state.current=null;
+    state.queue=[];
+    state.queueIndex=-1;
+    state.reelsDrafts=[];
+    state.reelsInitialized=false;
+    $('#auth-error').textContent='';
+    $('#sidebar-username').textContent='Visitante';
+    $('#top-username').textContent='Visitante';
+    $('#user-avatar').textContent='V';
+    $('#top-avatar').textContent='V';
+    $('#auth-screen').classList.add('hidden');
+    $('#app-shell').classList.remove('hidden');
+    switchView('discover');
+    showToast('Você entrou como visitante. Playlists e favoritos ficam apenas nesta sessão.');
+  }catch(err){
+    console.error('Não foi possível abrir o modo visitante:',err);
+    $('#app-shell').classList.add('hidden');
+    $('#auth-screen').classList.remove('hidden');
+    $('#auth-error').textContent='Não consegui abrir o player: '+(err?.message||'erro inesperado');
+  }
 }
 
 function addDropHandlers(zone){if(!zone)return;zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');importFiles(e.dataTransfer.files);});}
 function wireEvents(){
   $('#auth-form').addEventListener('submit',handleAuth);
-  $('#auth-guest').addEventListener('click',enterGuestMode);
+  $('#auth-guest').addEventListener('click',event=>{event.preventDefault();enterGuestMode();});
   $$('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
   $('#hero-discover').addEventListener('click',()=>switchView('discover'));
   $('#hero-import').addEventListener('click',()=>$('#file-picker').click());
@@ -532,4 +542,4 @@ function wireEvents(){
   $('#delete-account-data').addEventListener('click',()=>{openModal('<h2>Apagar todos os dados?</h2><p>Isso remove a conta local, músicas importadas, playlists e histórico deste navegador. Esta ação não pode ser desfeita.</p><div class="modal-actions"><button class="outline-btn" id="cancel-delete">Cancelar</button><button class="primary-btn" id="confirm-delete">Apagar tudo</button></div>');$('#cancel-delete').addEventListener('click',closeModal);$('#confirm-delete').addEventListener('click',async()=>{closeModal();audio.pause();await dbClear('vault');await dbClear('meta');await dbClear('media');state.key=null;state.localTracks=[];state.playlists=[];state.favorites=[];state.history=[];state.reelsDrafts=[];state.reelsInitialized=false;$('#app-shell').classList.add('hidden');$('#auth-screen').classList.remove('hidden');$('#auth-username').classList.remove('hidden');$('#auth-username').previousElementSibling.classList.remove('hidden');$('#auth-username').value='';$('#auth-password').value='';state.savedOnline=[];await initAuth();showToast('Dados apagados deste navegador.');});});
 }
 
-(async function boot(){try{if(!crypto.subtle)throw new Error('Criptografia do navegador indisponível. Abra o Sonora em localhost ou HTTPS.');wireEvents();await initAuth();}catch(e){document.body.innerHTML=`<div style="padding:32px;color:white;font-family:sans-serif"><h2>Não foi possível iniciar o Sonora</h2><p>${safeText(e.message)}</p><p>Abra o arquivo usando o iniciar.bat ou em um endereço HTTPS.</p></div>`;}})();
+(async function boot(){try{wireEvents();const guestMode=new URLSearchParams(location.search).get('guest')==='1';if(guestMode){enterGuestMode();history.replaceState({},'',location.pathname+location.hash);}else{if(!crypto.subtle)throw new Error('Criptografia do navegador indisponível. Abra o Sonora em localhost ou HTTPS.');await initAuth();}}catch(e){console.error('Falha ao iniciar Sonora:',e);document.body.innerHTML=`<div style="padding:32px;color:white;font-family:sans-serif"><h2>Não foi possível iniciar o Sonora</h2><p>${safeText(e.message)}</p><p>Tente recarregar a página.</p></div>`;}})();
