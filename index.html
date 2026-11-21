@@ -36,7 +36,7 @@
           <label for="auth-password">Senha</label>
           <input id="auth-password" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" required>
           <button class="primary-btn auth-submit" type="submit" id="auth-submit">Criar meu espaço <span>→</span></button>
-          <button class="ghost-btn auth-submit" type="button" id="auth-guest">Continuar sem conta</button>
+          <a class="ghost-btn auth-submit" id="auth-guest" href="?guest=1">Continuar sem conta</a>
           <p id="auth-error" class="form-error" aria-live="polite"></p>
         </form>
         <div class="security-note"><span class="shield">✦</span><span>Senha protegida com derivação PBKDF2 e dados locais criptografados. A conta fica neste navegador.</span></div>
