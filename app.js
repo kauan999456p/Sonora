@@ -10,7 +10,7 @@ const state = {
   user: null, key: null, localTracks: [], onlineTracks: [], savedOnline: [], playlists: [], favorites: [], history: [],
   current: null, currentObjectUrl: null, reelPreviewUrl: null, queue: [], queueIndex: -1,
   libraryFilter: 'all', repeat: false, shuffle: false, activePlaylist: null,
-  tutorialStep: 0, tutorialSteps: [], reelsDrafts: [], reelsInitialized: false, reelFilter: 'all', reelSearch: '', reelsVisible: 20,
+  tutorialStep: 0, tutorialSteps: [], reelsDrafts: [], reelsInitialized: false, reelFilter: 'all', reelSearch: '', reelsVisible: 20, catalogRequestId: 0,
 };
 const audio = $('#audio-element');
 
