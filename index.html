@@ -32,9 +32,9 @@
         <p id="auth-subtitle" class="muted">Escolha um nome e uma senha para proteger seus dados neste navegador.</p>
         <form id="auth-form" autocomplete="off">
           <label for="auth-username">Seu nome</label>
-          <input id="auth-username" maxlength="24" placeholder="Como podemos chamar você?" required>
+          <input id="auth-username" maxlength="24" autocomplete="username" placeholder="Como podemos chamar você?" required>
           <label for="auth-password">Senha</label>
-          <input id="auth-password" type="password" minlength="8" placeholder="Pelo menos 8 caracteres" required>
+          <input id="auth-password" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" required>
           <button class="primary-btn auth-submit" type="submit" id="auth-submit">Criar meu espaço <span>→</span></button>
           <p id="auth-error" class="form-error" aria-live="polite"></p>
         </form>

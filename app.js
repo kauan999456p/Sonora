@@ -1,6 +1,6 @@
 'use strict';
 
-const DB_NAME = 'sonora-vault-v1';
+const DB_NAME = 'sonora-online-v1';
 const DB_VERSION = 2;
 const MAX_REEL_VIDEO_BYTES = 1_000_000_000; // 1 GB decimal
 const REEL_VIDEO_CHUNK_BYTES = 8 * 1024 * 1024; // 8 MiB per encrypted block
@@ -20,8 +20,13 @@ if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
   if (localBanner) localBanner.remove();
 }
 
+let dbConnectionPromise = null;
 function dbOpen() {
-  return new Promise((resolve, reject) => {
+  if (!('indexedDB' in window)) {
+    return Promise.reject(new Error('Este navegador está bloqueando o armazenamento local do Sonora.'));
+  }
+  if (dbConnectionPromise) return dbConnectionPromise;
+  dbConnectionPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -29,9 +34,24 @@ function dbOpen() {
       if (!db.objectStoreNames.contains('vault')) db.createObjectStore('vault', {keyPath:'id'});
       if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', {keyPath:'id'});
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onblocked = () => {
+      dbConnectionPromise = null;
+      reject(new Error('O armazenamento está ocupado por outra aba. Feche outras abas do Sonora e tente novamente.'));
+    };
+    request.onerror = () => {
+      dbConnectionPromise = null;
+      reject(request.error || new Error('Não foi possível abrir o armazenamento do Sonora.'));
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => {
+        db.close();
+        dbConnectionPromise = null;
+      };
+      resolve(db);
+    };
   });
+  return dbConnectionPromise;
 }
 async function dbGet(store, id) { const db=await dbOpen(); return new Promise((resolve,reject)=>{const r=db.transaction(store,'readonly').objectStore(store).get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}); }
 async function dbPut(store, value) { const db=await dbOpen(); return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(value);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);}); }
@@ -352,11 +372,113 @@ function renderTutorial(){const s=tutorial[state.tutorialStep];$('#tutorial-step
 function nextTutorial(){if(state.tutorialStep<tutorial.length-1){state.tutorialStep++;renderTutorial();}else{finishTutorial();}}
 function finishTutorial(){localStorage.setItem('sonora-tutorial-done','1');$('#tutorial-overlay').classList.add('hidden');showToast('Bem-vindo ao Sonora! ✦');}
 
-async function initAuth(){const meta=await dbGet('meta','account');if(!meta){$('#auth-title').textContent='Crie seu espaço.';$('#auth-subtitle').textContent='Escolha um nome e uma senha para proteger seus dados neste navegador.';$('#auth-username').classList.remove('hidden');$('#auth-username').previousElementSibling.classList.remove('hidden');$('#auth-submit').textContent='Criar meu espaço →';}else{$('#auth-title').textContent='Que bom ter você de volta.';$('#auth-subtitle').textContent='Digite seu nome e sua senha para abrir seu cofre musical.';$('#auth-username').value=meta.username;$('#auth-username').classList.add('hidden');$('#auth-username').previousElementSibling.classList.add('hidden');$('#auth-password').focus();$('#auth-submit').textContent='Entrar →';}}
-async function handleAuth(e){e.preventDefault();const meta=await dbGet('meta','account');const username=$('#auth-username').value.trim()||meta?.username;const password=$('#auth-password').value;$('#auth-error').textContent='';if(password.length<8){$('#auth-error').textContent='Use uma senha com pelo menos 8 caracteres.';return;}try{if(!meta){const salt=crypto.getRandomValues(new Uint8Array(16));const key=await deriveKey(password,salt);const verifier=await encryptText('SONORA-LOCAL-VAULT-OK',key);await dbPut('meta',{id:'account',username,salt:toB64(salt),verifier});state.key=key;state.user={name:username};state.playlists=[];state.favorites=[];state.history=[];state.reelsDrafts=[];state.reelsInitialized=false;await saveVault();}else{const key=await deriveKey(password,fromB64(meta.salt));const check=await decryptText(meta.verifier,key);if(check!=='SONORA-LOCAL-VAULT-OK')throw new Error('Senha incorreta. Confira e tente de novo.');state.key=key;await loadVault();state.user=state.user||{name:meta.username};}
-    if(!state.reelsInitialized){state.reelsDrafts=makeSeedReels();state.reelsInitialized=true;await saveVault();}
-    $('#auth-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');renderAll();switchView('home');loadAudiusCatalog();if(!localStorage.getItem('sonora-tutorial-done'))setTimeout(startTutorial,650);
-  }catch(err){$('#auth-error').textContent=err.message.includes('Senha incorreta')?err.message:'Não foi possível abrir o cofre. Verifique a senha e tente novamente.';}}
+async function initAuth(){
+  const usernameInput=$('#auth-username');
+  const usernameLabel=usernameInput.previousElementSibling;
+  const passwordInput=$('#auth-password');
+  const submit=$('#auth-submit');
+  const error=$('#auth-error');
+  error.textContent='';
+  try{
+    const meta=await dbGet('meta','account');
+    if(!meta){
+      $('#auth-title').textContent='Crie seu espaço.';
+      $('#auth-subtitle').textContent='Escolha um nome e uma senha para proteger seus dados neste navegador.';
+      usernameInput.classList.remove('hidden');
+      usernameLabel.classList.remove('hidden');
+      usernameInput.required=true;
+      usernameInput.autocomplete='username';
+      passwordInput.autocomplete='new-password';
+      submit.textContent='Criar meu espaço →';
+    }else{
+      $('#auth-title').textContent='Que bom ter você de volta.';
+      $('#auth-subtitle').textContent='Digite sua senha para abrir seu cofre musical.';
+      usernameInput.value=meta.username||'';
+      usernameInput.classList.add('hidden');
+      usernameLabel.classList.add('hidden');
+      usernameInput.required=false;
+      usernameInput.removeAttribute('minlength');
+      passwordInput.autocomplete='current-password';
+      passwordInput.focus();
+      submit.textContent='Entrar →';
+    }
+  }catch(error){
+    console.error('Falha ao abrir armazenamento:',error);
+    $('#auth-title').textContent='Não consegui abrir seu espaço.';
+    $('#auth-subtitle').textContent='O navegador não conseguiu acessar o armazenamento do Sonora. Verifique as permissões do site e tente novamente.';
+    error.textContent=error.message||'Falha no armazenamento local.';
+    submit.textContent='Tentar novamente →';
+  }
+}
+async function handleAuth(e){
+  e.preventDefault();
+  const submit=$('#auth-submit');
+  if(submit.disabled)return;
+  const originalLabel=submit.textContent;
+  submit.disabled=true;
+  submit.textContent='Preparando seu espaço…';
+  $('#auth-error').textContent='';
+  let createdAccount=false;
+  try{
+    if(!crypto.subtle)throw new Error('A criptografia segura não está disponível. Abra o Sonora pelo endereço HTTPS.');
+    const meta=await dbGet('meta','account');
+    const username=$('#auth-username').value.trim()||meta?.username||'';
+    const password=$('#auth-password').value;
+    if(!meta&&!username)throw new Error('Digite um nome para criar seu espaço.');
+    if(password.length<8)throw new Error('A senha precisa ter pelo menos 8 caracteres.');
+    if(!meta){
+      const salt=crypto.getRandomValues(new Uint8Array(16));
+      const key=await deriveKey(password,salt);
+      const verifier=await encryptText('SONORA-LOCAL-VAULT-OK',key);
+      state.key=key;
+      state.user={name:username};
+      state.playlists=[];
+      state.favorites=[];
+      state.history=[];
+      state.savedOnline=[];
+      state.reelsDrafts=makeSeedReels();
+      state.reelsInitialized=true;
+      await dbPut('meta',{id:'account',username,salt:toB64(salt),verifier});
+      createdAccount=true;
+      await saveVault();
+    }else{
+      const key=await deriveKey(password,fromB64(meta.salt));
+      let check;
+      try{check=await decryptText(meta.verifier,key);}
+      catch{throw new Error('Senha incorreta. Confira e tente novamente.');}
+      if(check!=='SONORA-LOCAL-VAULT-OK')throw new Error('Senha incorreta. Confira e tente novamente.');
+      state.key=key;
+      await loadVault();
+      state.user=state.user||{name:meta.username||'Usuário'};
+      if(!state.reelsInitialized){
+        state.reelsDrafts=makeSeedReels();
+        state.reelsInitialized=true;
+        await saveVault();
+      }
+    }
+    $('#auth-screen').classList.add('hidden');
+    $('#app-shell').classList.remove('hidden');
+    renderAll();
+    switchView('home');
+    loadAudiusCatalog();
+    if(!localStorage.getItem('sonora-tutorial-done'))setTimeout(startTutorial,650);
+  }catch(err){
+    console.error('Erro no cadastro/login do Sonora:',err);
+    if(createdAccount){
+      await Promise.all([
+        dbDelete('meta','account').catch(()=>{}),
+        dbDelete('vault','app-state').catch(()=>{})
+      ]);
+      state.key=null;
+      state.user=null;
+    }
+    const message=err&&err.message?err.message:'Erro inesperado ao criar ou abrir seu espaço.';
+    $('#auth-error').textContent=message;
+  }finally{
+    submit.disabled=false;
+    submit.textContent=originalLabel;
+  }
+}
 async function logout(){if(audio&&!audio.paused)audio.pause();state.key=null;state.user=null;state.localTracks=[];state.history=[];state.favorites=[];state.playlists=[];state.reelsDrafts=[];state.reelsInitialized=false;$('#app-shell').classList.add('hidden');$('#auth-screen').classList.remove('hidden');$('#auth-password').value='';await initAuth();}
 
 function addDropHandlers(zone){if(!zone)return;zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');importFiles(e.dataTransfer.files);});}
