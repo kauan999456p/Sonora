@@ -72,6 +72,7 @@ async function saveVault() {
   await dbPut('vault',{id:'app-state',...(await encryptText(JSON.stringify(payload),state.key))});
 }
 async function saveTrack(track) {
+  if(!state.key) return; // modo visitante: não tenta usar o cofre criptografado
   const raw=await track.file.arrayBuffer();
   const iv=crypto.getRandomValues(new Uint8Array(12));
   const payload=JSON.stringify({meta:{...track,file:undefined,blobUrl:undefined},audio:toB64(new Uint8Array(raw))});
@@ -402,11 +403,11 @@ async function initAuth(){
       passwordInput.focus();
       submit.textContent='Entrar →';
     }
-  }catch(error){
-    console.error('Falha ao abrir armazenamento:',error);
+  }catch(err){
+    console.error('Falha ao abrir armazenamento:',err);
     $('#auth-title').textContent='Não consegui abrir seu espaço.';
-    $('#auth-subtitle').textContent='O navegador não conseguiu acessar o armazenamento do Sonora. Verifique as permissões do site e tente novamente.';
-    error.textContent=error.message||'Falha no armazenamento local.';
+    $('#auth-subtitle').textContent='O navegador não conseguiu acessar o armazenamento do Sonora. Você ainda pode usar o catálogo como visitante.';
+    error.textContent=err?.message||'Falha no armazenamento local.';
     submit.textContent='Tentar novamente →';
   }
 }
@@ -441,6 +442,7 @@ async function handleAuth(e){
       await dbPut('meta',{id:'account',username,salt:toB64(salt),verifier});
       createdAccount=true;
       await saveVault();
+      createdAccount=false;
     }else{
       const key=await deriveKey(password,fromB64(meta.salt));
       let check;
@@ -481,9 +483,32 @@ async function handleAuth(e){
 }
 async function logout(){if(audio&&!audio.paused)audio.pause();state.key=null;state.user=null;state.localTracks=[];state.history=[];state.favorites=[];state.playlists=[];state.reelsDrafts=[];state.reelsInitialized=false;$('#app-shell').classList.add('hidden');$('#auth-screen').classList.remove('hidden');$('#auth-password').value='';await initAuth();}
 
+function enterGuestMode(){
+  state.key=null;
+  state.user={name:'Visitante'};
+  state.localTracks=[];
+  state.onlineTracks=[];
+  state.savedOnline=[];
+  state.playlists=[];
+  state.favorites=[];
+  state.history=[];
+  state.current=null;
+  state.queue=[];
+  state.queueIndex=-1;
+  state.reelsDrafts=[];
+  state.reelsInitialized=false;
+  $('#auth-error').textContent='';
+  $('#auth-screen').classList.add('hidden');
+  $('#app-shell').classList.remove('hidden');
+  renderAll();
+  switchView('discover');
+  showToast('Você entrou como visitante. Seus dados desta sessão não ficam salvos após fechar a página.');
+}
+
 function addDropHandlers(zone){if(!zone)return;zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');importFiles(e.dataTransfer.files);});}
 function wireEvents(){
   $('#auth-form').addEventListener('submit',handleAuth);
+  $('#auth-guest').addEventListener('click',enterGuestMode);
   $$('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
   $('#hero-discover').addEventListener('click',()=>switchView('discover'));
   $('#hero-import').addEventListener('click',()=>$('#file-picker').click());
