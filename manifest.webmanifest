@@ -1,0 +1,19 @@
+{
+  "name": "Sonora v1.0 — Player musical online",
+  "short_name": "Sonora",
+  "description": "Player musical online com catálogo Audius, busca, playlists e recomendações.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d17",
+  "theme_color": "#0b0d17",
+  "icons": [
+    {
+      "src": "assets/sonora-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
