@@ -31,15 +31,18 @@
         <h2 id="auth-title">Crie seu espaço.</h2>
         <p id="auth-subtitle" class="muted">Escolha um nome e uma senha para proteger seus dados neste navegador.</p>
         <form id="auth-form" autocomplete="off">
-          <label for="auth-username">Seu nome</label>
-          <input id="auth-username" maxlength="24" autocomplete="username" placeholder="Como podemos chamar você?" required>
+          <label for="auth-email">E-mail</label>
+          <input id="auth-email" type="email" maxlength="254" autocomplete="email" placeholder="voce@exemplo.com" required>
+          <label for="auth-username">Nome de usuário</label>
+          <input id="auth-username" maxlength="24" autocomplete="username" placeholder="Ex.: artista_sonora" required>
           <label for="auth-password">Senha</label>
           <input id="auth-password" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" required>
-          <button class="primary-btn auth-submit" type="submit" id="auth-submit">Criar meu espaço <span>→</span></button>
+          <button class="primary-btn auth-submit" type="submit" id="auth-submit">Criar conta <span>→</span></button>
+          <button class="ghost-btn auth-submit auth-mode-toggle" type="button" id="auth-mode-toggle">Já tem conta? Entrar</button>
           <a class="ghost-btn auth-submit" id="auth-guest" href="?guest=1">Continuar sem conta</a>
           <p id="auth-error" class="form-error" aria-live="polite"></p>
         </form>
-        <div class="security-note"><span class="shield">✦</span><span>Senha protegida com derivação PBKDF2 e dados locais criptografados. A conta fica neste navegador.</span></div>
+        <div class="security-note"><span class="shield">✦</span><span>Conta online do Sonora. Use seu e-mail para entrar em outros dispositivos. Nunca compartilhe sua senha.</span></div>
       </div>
       <div class="auth-footer">SONORA V1 · PLAYER ONLINE</div>
     </div>
@@ -50,6 +53,7 @@
       <div class="brand"><div class="brand-mark"><i></i><i></i><i></i><i></i></div><span>sonora</span><small>WEB PLAYER</small></div>
       <button class="nav-link active" data-view="home"><b class="nav-icon">⌂</b><span>Início</span></button>
       <button class="nav-link" data-view="discover"><b class="nav-icon">⌕</b><span>Descobrir</span><span class="nav-dot"></span></button>
+      <button class="nav-link" data-view="community"><b class="nav-icon">◉</b><span>Comunidade</span></button>
       <button class="nav-link" data-view="library"><b class="nav-icon">▤</b><span>Minha biblioteca</span></button>
       <div class="sidebar-label">SUA MÚSICA</div>
       <button class="nav-link" data-view="favorites"><b class="nav-icon">♡</b><span>Favoritas</span></button>
@@ -102,6 +106,38 @@
         <div class="api-footnote">As músicas são hospedadas e transmitidas pelo Audius; o Sonora não baixa nem reenvia os áudios. Cada faixa pertence aos respectivos criadores. Para reutilizar uma música fora da plataforma, confira a licença e as permissões na página original do artista. <a href="https://docs.audius.co/api/" target="_blank" rel="noopener noreferrer">Documentação oficial ↗</a></div>
       </section>
 
+
+      <section class="content-view community-view" id="view-community">
+        <div class="page-intro page-intro-row"><div><span class="eyebrow">SONORA COMMUNITY</span><h1>Comunidade<span class="accent-period">.</span></h1><p>Descubra faixas compartilhadas por artistas e ouvintes do Sonora.</p></div><button class="outline-btn" id="community-refresh">↻ Atualizar</button></div>
+        <div class="community-publish-area">
+          <form id="publish-music-form" class="publish-card">
+            <div class="publish-card-heading"><div><span class="eyebrow">SEU SOM MERECE SER OUVIDO</span><h2>Publicar uma música</h2><p>Compartilhe uma faixa original ou que você tenha autorização para publicar.</p></div><span class="publish-note">MP3 · WAV · OGG</span></div>
+            <label for="publish-title">Título da música</label><input id="publish-title" maxlength="80" placeholder="Nome da faixa" required>
+            <div class="publish-grid"><div><label for="publish-artist">Artista</label><input id="publish-artist" maxlength="80" placeholder="Nome do artista"></div><div><label for="publish-cover">Capa (opcional)</label><input id="publish-cover" type="file" accept="image/jpeg,image/png,image/webp"></div></div>
+            <label for="publish-description">Descrição</label><textarea id="publish-description" rows="3" maxlength="500" placeholder="Conte um pouco sobre essa faixa..."></textarea>
+            <label for="publish-audio">Arquivo de áudio (até 25 MB)</label><input id="publish-audio" type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/flac,audio/webm" required>
+            <p class="publish-rights-note">Publique somente músicas que você criou ou tem autorização para compartilhar. Não inclua dados pessoais na publicação.</p>
+            <button class="primary-btn" id="publish-submit" type="submit">Publicar música <span>↗</span></button>
+          </form>
+          <div class="publish-signin hidden" id="community-signin-note"><strong>Entre para publicar</strong><p>Crie uma conta para enviar suas músicas e montar seu perfil.</p><button type="button" class="primary-btn" id="community-signin">Entrar / Criar conta</button></div>
+        </div>
+        <div class="section-heading compact-heading"><div><span class="eyebrow">NOVAS DESCOBERTAS</span><h2>Publicações recentes</h2></div></div>
+        <div id="community-feed" class="community-feed"><div class="empty-state">Carregando comunidade...</div></div>
+      </section>
+      <section class="content-view profile-view" id="view-profile">
+        <div class="page-intro"><span class="eyebrow">SEU ESPAÇO NA COMUNIDADE</span><h1>Meu perfil<span class="accent-period">.</span></h1><p>Escolha uma foto, seu nome público e uma pequena bio.</p></div>
+        <div class="profile-card">
+          <div class="profile-main"><div class="profile-avatar" id="profile-avatar-preview">S</div><div><h2 id="profile-display-name">Ouvinte</h2><p id="profile-handle">@ouvinte</p><small id="profile-email"></small><p><strong id="profile-published-count">0</strong> músicas publicadas</p></div></div>
+          <div id="profile-edit-fields"><form id="profile-form" class="profile-form">
+            <label for="profile-name-input">Nome de exibição</label><input id="profile-name-input" maxlength="40" required>
+            <label for="profile-username-input">Nome de usuário</label><input id="profile-username-input" maxlength="24" required>
+            <label for="profile-bio-input">Bio</label><textarea id="profile-bio-input" rows="3" maxlength="160" placeholder="Fale sobre seu som..."></textarea>
+            <div class="profile-actions"><button class="outline-btn" type="button" id="choose-avatar">Alterar foto de perfil</button><button class="primary-btn" type="submit">Salvar perfil</button></div>
+          </form></div>
+          <input id="avatar-picker" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          <div class="publish-signin hidden" id="profile-login-note"><strong>Você está como visitante</strong><p>Entre para criar e editar seu perfil.</p><button class="primary-btn" type="button" id="profile-login">Entrar / Criar conta</button></div>
+        </div>
+      </section>
       <section class="content-view" id="view-library">
         <div class="page-intro page-intro-row"><div><span class="eyebrow">SEUS ARQUIVOS</span><h1>Minha biblioteca<span class="accent-period">.</span></h1><p>Suas músicas importadas ficam salvas neste navegador, protegidas pelo seu cofre.</p></div><button class="primary-btn" id="library-import">＋ Importar músicas</button></div>
         <div class="library-toolbar"><div class="tab-filters"><button class="filter-chip active" data-library-filter="all">Todas</button><button class="filter-chip" data-library-filter="recent">Recentes</button><button class="filter-chip" data-library-filter="favorites">Favoritas</button></div><span id="library-count" class="muted small-text">0 faixas</span></div>
@@ -190,7 +226,9 @@
     caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('sonora-static-')).map(key => caches.delete(key)))).catch(() => {});
   }
 </script>
-  <script src="app-1.0.7.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="backend-config.js"></script>
+  <script src="app-1.1.0.js"></script>
   
 </body>
 </html>

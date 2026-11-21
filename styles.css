@@ -53,3 +53,47 @@
 .source-action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--cyan);font-size:13px}
 .api-footnote{max-width:900px;line-height:1.65}
 @media(max-width:650px){.catalog-heading{align-items:flex-start;flex-direction:column}.catalog-heading .outline-btn{width:100%}.catalog-genres{gap:7px}.genre-chip{padding:8px 12px}}
+
+/* Sonora 1.1 — perfis online e comunidade */
+.auth-mode-toggle{width:100%;display:flex;justify-content:center;align-items:center;color:var(--text);cursor:pointer}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.publish-card,.profile-card{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:20px;padding:24px;max-width:920px}
+.publish-card{box-shadow:0 12px 36px rgba(0,0,0,.14)}
+.publish-card-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}
+.publish-card-heading h2{font:600 24px var(--display);margin:7px 0 5px}
+.publish-card-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.publish-note{font-size:10px;letter-spacing:1px;color:var(--cyan);border:1px solid rgba(112,229,220,.22);padding:8px 10px;border-radius:999px}
+.publish-card label,.profile-form label{display:block;font-size:12px;font-weight:700;color:#c6c5d4;margin:16px 0 8px}
+.publish-card input:not([type=file]),.publish-card textarea,.profile-form input,.profile-form textarea{width:100%;background:#151827;border:1px solid var(--line);border-radius:11px;padding:13px 14px;color:white;outline:none;font:inherit}
+.publish-card input[type=file]{display:block;width:100%;padding:12px;background:#151827;border:1px solid var(--line);border-radius:11px;color:var(--muted);font-size:12px}
+.publish-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.publish-rights-note{color:var(--muted);font-size:11px;line-height:1.6;margin:15px 0}
+.publish-card #publish-submit{margin-top:5px}
+.publish-signin{max-width:920px;border:1px dashed rgba(165,139,255,.4);padding:22px;border-radius:16px;margin:18px 0}
+.publish-signin p{color:var(--muted);font-size:13px}
+.community-feed{display:grid;gap:15px}
+.community-track-card{display:flex;gap:20px;padding:18px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:18px;max-width:920px}
+.community-cover{width:138px;height:138px;flex:0 0 138px;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#584887,#b778a8);font-size:48px;color:white}
+.community-cover img{width:100%;height:100%;object-fit:cover}
+.community-track-info{flex:1;min-width:0}
+.community-byline{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.community-byline>span:last-child{display:flex;flex-direction:column;gap:2px}
+.community-byline strong{font-size:12px}
+.community-byline small{font-size:10px;color:var(--muted)}
+.community-avatar{width:30px;height:30px;object-fit:cover;border-radius:50%;display:block}
+.community-avatar-fallback{display:grid;place-items:center;background:#66538f;color:#fff;font-size:12px}
+.community-track-info h3{font:600 20px var(--display);margin:6px 0 2px}
+.community-artist{font-size:12px;color:var(--cyan);margin:0}
+.community-description{font-size:12px;color:var(--muted);line-height:1.5;margin:9px 0}
+.community-card-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.community-card-actions button{font-size:11px;padding:9px 12px}
+.profile-card{max-width:780px}
+.profile-main{display:flex;align-items:center;gap:20px;padding-bottom:23px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.profile-main h2{font:600 26px var(--display);margin:0 0 4px}
+.profile-main p{color:var(--muted);font-size:12px;margin:4px 0}
+.profile-main small{color:var(--muted);font-size:11px}
+.profile-avatar{width:104px;height:104px;flex:0 0 104px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:linear-gradient(135deg,#604d91,#c27eae);font-size:36px;color:#fff;border:3px solid rgba(255,255,255,.2)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-form{max-width:600px}
+.profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:650px){.publish-grid{grid-template-columns:1fr}.publish-card,.profile-card{padding:17px}.publish-card-heading{flex-direction:column}.community-track-card{gap:12px;padding:12px}.community-cover{width:90px;height:90px;flex-basis:90px}.community-track-info h3{font-size:17px}.profile-avatar{width:82px;height:82px;flex-basis:82px}}
