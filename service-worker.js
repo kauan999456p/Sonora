@@ -1,10 +1,10 @@
-const CACHE_NAME = 'sonora-static-v1-0-6';
+const CACHE_NAME = 'sonora-static-v1-0-7';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './reels.css',
-  './app.js',
+  './app-1.0.7.js',
   './manifest.webmanifest',
   './assets/sonora-icon.svg'
 ];
